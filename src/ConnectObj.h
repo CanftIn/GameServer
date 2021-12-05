@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __CONNECTOBJ_H__
+#define __CONNECTOBJ_H__
 
 #include "Disposable.h"
 
@@ -9,7 +10,7 @@ class Packet;
 
 class ConnectObj : public IDisposable {
  public:
-  ConnectObj(Network* pNetwork, int socket);
+  ConnectObj(Network* network, int socket);
   ~ConnectObj() override;
 
   void Dispose() override;
@@ -23,8 +24,10 @@ class ConnectObj : public IDisposable {
   bool Send() const;
 
  protected:
-  Network* _pNetwork{ nullptr };
+  Network* _network;
   const int _socket;
-  RecvNetworkBuffer* _recvBuffer{ nullptr };
-  SendNetworkBuffer* _sendBuffer{ nullptr };
+  RecvNetworkBuffer* _recv_buf;
+  SendNetworkBuffer* _send_buf;
 };
+
+#endif

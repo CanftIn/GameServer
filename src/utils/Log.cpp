@@ -1,0 +1,73 @@
+#include "Log.h"
+
+#include <string.h>
+#include <stdarg.h>
+#include <sstream>
+
+
+void Log::Info(const char* msg) {
+  std::stringstream ss;
+  ss << "[INFO]" << msg;
+  printf("%s\n", ss.str().c_str());
+}
+
+void Log::Debug(const char* msg) {
+  std::stringstream ss;
+  ss << "[DEBUG]" << msg;
+  printf("%s\n", ss.str().c_str());
+}
+void Log::Warn(const char* msg) {
+  std::stringstream ss;
+  ss << "[WARN]" << msg;
+  printf("%s\n", ss.str().c_str());
+}
+
+void Log::Error(const char* msg) {
+  std::stringstream ss;
+  ss << "[ERROR]" << msg;
+  perror(ss.str().c_str());
+}
+
+void Crash() {
+  char* p = nullptr;
+  *p = 0;
+}
+
+void Log::Fatal(const char* msg) {
+  std::stringstream ss;
+  ss << "[FATAL]" << msg;
+  perror(ss.str().c_str());
+  Crash();
+}
+
+//---------------------------
+
+void Log::Info(const std::string msg) {
+  std::stringstream ss;
+  ss << "[INFO]" << msg;
+  printf("%s\n", ss.str().c_str());
+}
+
+void Log::Debug(const std::string msg) {
+  std::stringstream ss;
+  ss << "[DEBUG]" << msg;
+  printf("%s\n", ss.str().c_str());
+}
+void Log::Warn(const std::string msg) {
+  std::stringstream ss;
+  ss << "[WARN]" << msg;
+  printf("%s\n", ss.str().c_str());
+}
+
+void Log::Error(const std::string msg) {
+  std::stringstream ss;
+  ss << "[ERROR]" << msg;
+  perror(ss.str().c_str());
+}
+
+void Log::Fatal(const std::string msg) {
+  std::stringstream ss;
+  ss << "[FATAL]" << msg;
+  perror(ss.str().c_str());
+  Crash();
+}

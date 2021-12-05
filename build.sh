@@ -17,6 +17,9 @@ fi
 
 if ${clean};then
     rm -rf build
+    rm -rf build_cln
+    rm -rf build_lib
+    rm -rf build_svr
     rm -rf libs
     rm -rf bin
 else

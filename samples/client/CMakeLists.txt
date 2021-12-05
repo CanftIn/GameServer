@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 set(MyProjectName client)
+set(MyLibNetWorkName gamesvr.a)
 
 project(${MyProjectName})
 
