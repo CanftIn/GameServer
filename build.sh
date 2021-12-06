@@ -44,7 +44,7 @@ fi
 
 if ${test};then
     mkdir build_test && cd build_test
-    cmake -DCMAKE_BUILD_TYPE=${buildType} ../../test
+    cmake -DCMAKE_BUILD_TYPE=${buildType} ../test
     make
     cd ..
 fi
