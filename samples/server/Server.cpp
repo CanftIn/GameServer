@@ -4,6 +4,7 @@
 
 #include "Packet.h"
 #include "ConnectObj.h"
+#include "utils/Log.h"
 
 Server::Server()
   : _accept_count(0),
@@ -22,8 +23,8 @@ bool Server::DataHandler() {
 
   if (_is_show) {
     _is_show = false;
-    std::cout << "Accept: " + std::to_string(_accept_count) + "\trecv count: " \
-      + std::to_string(_recv_count) + "\tsend count: " + std::to_string(_send_count) << std::endl;
+    Log::Info("Accept: " + std::to_string(_accept_count) + "\trecv count: " \
+      + std::to_string(_recv_count) + "\tsend count: " + std::to_string(_send_count));
   }
 
   return true;
@@ -37,7 +38,7 @@ void Server::HandleOne(ConnectObj* conn_obj) {
   
 
     std::string msg(packet->GetBuffer(), packet->GetDataLength());
-    std::cout << "recv size: " + std::to_string(msg.length()) + " msg: " + msg << std::endl;
+    Log::Info("recv size: " + std::to_string(msg.length()) + " msg: " + msg);
     conn_obj->SendPacket(packet);
 
     ++_recv_count;
