@@ -3,13 +3,13 @@
 #include "ConnectObj.h"
 #include "utils/Log.h"
 
-bool NetworkConnect::Connect(const InetAddress& ia) {
+bool NetworkConnect::Connect() {
   _master_socket = CreateSocket();
   if (_master_socket == INVALID_SOCKET) {
     return false;
   }
 
-  if (sockets::connect(_master_socket, ia.getSockAddrInet())) {
+  if (sockets::connect(_master_socket, _ia.getSockAddrInet())) {
     ConnectObj* conn_obj = new ConnectObj(this, _master_socket);
     _connects.insert(std::make_pair(_master_socket, conn_obj));
   }
@@ -25,7 +25,7 @@ bool NetworkConnect::Update() {
       Log::Error("connect except. socket: " + std::to_string(_master_socket) + " reconnect.");
 
       Dispose();
-      Connect(_ia);
+      Connect();
       return br;
     }
 
@@ -40,7 +40,7 @@ bool NetworkConnect::Update() {
         Log::Error("connect failed. socket: " + std::to_string(_master_socket) + " reconnect.");
 
         Dispose();
-        Connect(_ia);
+        Connect();
       }
     }
   }

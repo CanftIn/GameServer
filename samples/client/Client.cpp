@@ -1,37 +1,42 @@
 #include <iostream>
 
-#include "Network.h"
+#include "Client.h"
+#include "Packet.h"
+#include "utils/Log.h"
 
-int main(int argc, char** argv) {
-  SOCKET socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (socket == INVALID_SOCKET)
-  {
-    std::cout << "::socket failed. err:" << errno << std::endl;
-    return 1;
+
+void Client::DataHandler() {
+  if (_is_completed) return ;
+
+  if (!IsConnected()) return ;
+
+  if (_idx < _msg_count) {
+    if (_last_msg.empty()) {
+      _last_msg = "this is a test msg.";
+      Log::Info("send. size: " + std::to_string(_last_msg.length()) + " msg: " + _last_msg);
+
+      Packet* packet = new Packet(1);
+      packet->AddBuffer(_last_msg.c_str(), _last_msg.length());
+      SendPacket(packet);
+      delete packet;
+    } else {
+      if (HasRecvData()) {
+        Packet* packet = GetRecvPacket();
+        if (packet != nullptr) {
+          const std::string msg(packet->GetBuffer(), packet->GetDataLength());
+          Log::Info("recv. size: " + std::to_string(packet->GetDataLength()));
+
+          if (msg != _last_msg) {
+            Log::Error("Error!!!");
+          }
+
+          _last_msg = "";
+          ++_idx;
+          delete packet;
+        }
+      }
+    }
+  } else {
+    _is_completed = true;
   }
-
-  sockaddr_in addr;
-  memset(&addr, 0, sizeof(sockaddr_in));
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(2333);
-  ::inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr.s_addr);
-
-  if (::connect(socket, (struct sockaddr *)&addr, sizeof(sockaddr)) < 0)
-  {
-    std::cout << "::connect failed. err:" << errno << std::endl;
-    return 1;
-  }
-
-  std::string msg = "ping";
-  ::send(socket, msg.c_str(), msg.length(), 0);
-
-  std::cout << "::send." << msg.c_str() << std::endl;
-
-  char buffer[1024];
-  memset(&buffer, 0, sizeof(buffer));
-  ::recv(socket, buffer, sizeof(buffer), 0);
-  std::cout << "::recv." << buffer << std::endl;
-
-  ::close(socket);
-  return 0;
 }

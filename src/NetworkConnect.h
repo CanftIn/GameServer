@@ -9,7 +9,13 @@ class Packet;
 
 class NetworkConnect : public Network {
  public:
-  bool Connect(const InetAddress& ia);
+  NetworkConnect()
+    : _ia(2333) 
+  {}
+  NetworkConnect(const InetAddress& ia)
+    : _ia(ia) 
+  {}
+  bool Connect();
   bool Update();
 
   bool HasRecvData();
@@ -20,7 +26,7 @@ class NetworkConnect : public Network {
  private:
   ConnectObj* GetConnectObj();
 
- private:
+ protected:
   InetAddress _ia;
 };
 

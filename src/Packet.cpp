@@ -3,17 +3,23 @@
 #include <cstring>
 
 Packet::Packet()
-  : _msg_id(0),
-    Buffer(DEFAULT_PACKET_BUFFER_SIZE)
+  : _msg_id(0)
 {
   CleanBuffer();
+  _buf_size = DEFAULT_PACKET_BUFFER_SIZE;
+  _beg_idx = 0;
+  _end_idx = 0;
+  _buffer = new char[_buf_size];
 }
 
 Packet::Packet(const int msg_id)
-  : _msg_id(msg_id),
-    Buffer(DEFAULT_PACKET_BUFFER_SIZE)
+  : _msg_id(msg_id)
 {
   CleanBuffer();
+  _buf_size = DEFAULT_PACKET_BUFFER_SIZE;
+  _beg_idx = 0;
+  _end_idx = 0;
+  _buffer = new char[_buf_size];
 }
 
 Packet::~Packet() {

@@ -15,6 +15,15 @@ class InetAddress {
     : addr_(addr)
   {}
 
+  InetAddress(const InetAddress& inet_addr) {
+    addr_ = inet_addr.getSockAddrInet();
+  }
+
+  InetAddress& operator = (const InetAddress& inet_addr) {
+    this->addr_ = inet_addr.getSockAddrInet();
+    return *this;
+  }
+
   std::string toHostPort() const;
 
   const struct sockaddr_in& getSockAddrInet() const { return addr_; }

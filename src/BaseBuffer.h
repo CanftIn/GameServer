@@ -3,8 +3,6 @@
 
 #include "Disposable.h"
 
-#include <vector>
-
 #define ADD_SIZE 100
 #define MAX_SIZE 1024 * 1024
 

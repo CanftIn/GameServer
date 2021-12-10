@@ -99,7 +99,7 @@ Packet* RecvNetworkBuffer::GetPacket() {
   }
 
   unsigned short total_size;
-  MemcpyFromBuffer(reinterpret_cast<char*>(&total_size), sizeof(total_size));
+  MemcpyFromBuffer(reinterpret_cast<char*>(&total_size), sizeof(TotalSizeType));
 
   if (_avail_size < total_size) {
     return nullptr;
