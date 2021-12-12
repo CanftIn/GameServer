@@ -39,5 +39,5 @@ void Buffer::ReAllocBuffer(const unsigned int data_length) {
   _beg_idx = 0;
   _end_idx = new_end_idx;
 
-  Log::Info("Buffer::ReAllocBuffer._buffer size: " + _buf_size);
+  Log::Info("Buffer::ReAllocBuffer._buffer size: " + std::to_string(_buf_size));
 }

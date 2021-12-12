@@ -5,7 +5,6 @@ set(MyLibNetWorkName gamesvr.a)
 project(${MyProjectName})
 
 aux_source_directory(. SRCS)
-aux_source_directory(../../src SRCS)
 
 include_directories(../../src)
 

@@ -10,7 +10,7 @@ void Network::Dispose() {
   }
   _connects.clear();
 
-  sockets::close(_master_socket);
+  //sockets::close(_master_socket);
   _master_socket = -1;
 }
 
