@@ -68,7 +68,7 @@ void Network::CreateConnectObj(SOCKET socket) {
   _connects.insert(std::make_pair(socket, conn_obj));
 
 #ifdef EPOLL
-  AddEvent(_epfd, socket, EPOLLIN | EPOLLRDHUP);
+  AddEvent(_epfd, socket, EPOLLIN | EPOLLET | EPOLLRDHUP);
 #endif
 }
 
@@ -92,7 +92,7 @@ void Network::ModifyEvent(int epollfd, int fd, int flag) {
 
 void Network::InitEpoll() {
   _epfd = epoll_create(MAX_CLIENT);
-  AddEvent(_epfd, _master_socket, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
+  AddEvent(_epfd, _master_socket, EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP);
 }
 
 void Network::DeleteEvent(int epollfd, int fd) {
@@ -105,7 +105,7 @@ void Network::Epoll() {
   for (auto it = _connects.begin(); it != _connects.end(); ++it) {
     ConnectObj* conn_obj = it->second;
     if (conn_obj->HasSendData()) {
-      ModifyEvent(_epfd, it->first, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
+      ModifyEvent(_epfd, it->first, EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP);
     }
   }
 
@@ -143,7 +143,7 @@ void Network::Epoll() {
 
     if (_events[idx].events & EPOLLOUT) {
       it->second->Send();
-      ModifyEvent(_epfd, it->first, EPOLLIN | EPOLLRDHUP);
+      ModifyEvent(_epfd, it->first, EPOLLIN | EPOLLET | EPOLLRDHUP);
     }
   }
 }
