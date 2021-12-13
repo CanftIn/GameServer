@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "Common.h"
 #include "Packet.h"
 #include "ConnectObj.h"
 #include "utils/Log.h"
@@ -35,10 +36,10 @@ void Server::HandleOne(ConnectObj* conn_obj) {
     Packet* packet = conn_obj->GetRecvPacket();
     if (packet == nullptr)
       break;
-  
 
-    std::string msg(packet->GetBuffer(), packet->GetDataLength());
-    Log::Info("recv size: " + std::to_string(msg.length()) + " msg: " + msg);
+    Proto::TestMsg proto_msg = packet->ParseProto<Proto::TestMsg>();
+    Log::Info("recv msg_id: " + std::to_string(packet->GetMsgId()) + 
+      ", msg: " + proto_msg.msg() + " idx: " + std::to_string(proto_msg.index()));
     conn_obj->SendPacket(packet);
 
     ++_recv_count;

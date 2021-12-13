@@ -17,4 +17,4 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 link_directories(${CMAKE_BINARY_DIR}/../../libs)
 
 add_executable(${MyProjectName} ${SRCS})
-target_link_libraries(${MyProjectName} ${MyLibNetWorkName} -lpthread)
+target_link_libraries(${MyProjectName} ${MyLibNetWorkName} pthread protobuf)

@@ -1,5 +1,8 @@
-#ifndef __DEF_H__
-#define __DEF_H__
+#ifndef __COMMON_H__
+#define __COMMON_H__
+
+#include "protobuf/msg.pb.h"
+#include "protobuf/proto_id.pb.h"
 
 #define SOCKET int
 #define INVALID_SOCKET -1
