@@ -16,7 +16,7 @@ class NetworkConnect : public Network {
     : _ia(ia) 
   {}
   bool Connect();
-  bool Update();
+  void Update();
 
   bool HasRecvData();
   Packet* GetRecvPacket();
@@ -25,6 +25,7 @@ class NetworkConnect : public Network {
 
  private:
   ConnectObj* GetConnectObj();
+  void TryCreateConnectObj();
 
  protected:
   InetAddress _ia;

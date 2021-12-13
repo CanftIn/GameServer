@@ -10,6 +10,10 @@ void Network::Dispose() {
   }
   _connects.clear();
 
+#ifdef EPOLL
+  ::close(_epfd);
+#endif
+
   //sockets::close(_master_socket);
   _master_socket = -1;
 }
@@ -58,6 +62,93 @@ SOCKET Network::CreateSocket() {
   SetSocketOpt(socket);
   return socket;
 }
+
+void Network::CreateConnectObj(SOCKET socket) {
+  ConnectObj* conn_obj = new ConnectObj(this, socket);
+  _connects.insert(std::make_pair(socket, conn_obj));
+
+#ifdef EPOLL
+  AddEvent(_epfd, socket, EPOLLIN | EPOLLRDHUP);
+#endif
+}
+
+#ifdef EPOLL
+
+void Network::AddEvent(int epollfd, int fd, int flag) {
+  struct epoll_event ee;
+  ee.events = flag;
+  ee.data.ptr = nullptr;
+  ee.data.fd = fd;
+  epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ee);
+}
+
+void Network::ModifyEvent(int epollfd, int fd, int flag) {
+  struct epoll_event ee;
+  ee.events = flag;
+  ee.data.ptr = nullptr;
+  ee.data.fd = fd;
+  epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &ee);
+}
+
+void Network::InitEpoll() {
+  _epfd = epoll_create(MAX_CLIENT);
+  AddEvent(_epfd, _master_socket, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
+}
+
+void Network::DeleteEvent(int epollfd, int fd) {
+  epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, nullptr);
+}
+
+void Network::Epoll() {
+  _main_sock_event_idx = -1;
+
+  for (auto it = _connects.begin(); it != _connects.end(); ++it) {
+    ConnectObj* conn_obj = it->second;
+    if (conn_obj->HasSendData()) {
+      ModifyEvent(_epfd, it->first, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
+    }
+  }
+
+  int nfds = epoll_wait(_epfd, _events, MAX_EVENT, 50);
+  for (int idx = 0; idx < nfds; ++idx) {
+    int fd = _events[idx].data.fd;
+
+    if (fd == _master_socket) {
+      _main_sock_event_idx = idx;
+    }
+
+    auto it = _connects.find(fd);
+    if (it == _connects.end()) continue;
+
+    if (_events[idx].events & EPOLLRDHUP || 
+        _events[idx].events & EPOLLERR ||
+        _events[idx].events & EPOLLHUP)
+    {
+      it->second->Dispose();
+      delete it->second;
+      it = _connects.erase(it);
+      DeleteEvent(_epfd, fd);
+      continue;
+    }
+
+    if (_events[idx].events & EPOLLIN) {
+      if (!it->second->Recv()) {
+        it->second->Dispose();
+        delete it->second;
+        it = _connects.erase(it);
+        DeleteEvent(_epfd, fd);
+        continue;
+      }
+    }
+
+    if (_events[idx].events & EPOLLOUT) {
+      it->second->Send();
+      ModifyEvent(_epfd, it->first, EPOLLIN | EPOLLRDHUP);
+    }
+  }
+}
+
+#else
 
 bool Network::Select() {
   FD_ZERO(&_readfds);
@@ -126,3 +217,5 @@ bool Network::Select() {
   
   return true;
 }
+
+#endif

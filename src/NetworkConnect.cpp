@@ -14,39 +14,79 @@ bool NetworkConnect::Connect() {
     _connects.insert(std::make_pair(_master_socket, conn_obj));
   }
 
+#ifdef EPOLL
+  Log::Info("epoll model");
+  InitEpoll();
+#else
+  Log::Info("select model");
+#endif
+
   return true;
 }
 
-bool NetworkConnect::Update() {
-  const bool br = Select();
+void NetworkConnect::TryCreateConnectObj() {
+  int opt_val = -1;
+  socklen_t opt_len = sizeof(opt_val);
+  const int rs = ::getsockopt(_master_socket, SOL_SOCKET, SO_ERROR, (char*)(&opt_val), &opt_len);
+  if (rs == 0 && opt_val == 0) {
+    CreateConnectObj(_master_socket);
+  } else {
+    Log::Error("connect failed. socket: " + std::to_string(_master_socket) + " reconnect.");
+
+    Dispose();
+  }
+}
+
+#ifdef EPOLL
+
+void NetworkConnect::Update() {
+  if (_master_socket == INVALID_SOCKET) {
+    if (!Connect()) return;
+
+    Log::Info("reconnect socket: " + std::to_string(_master_socket));
+  }
+  
+  Epoll();
+
+  if (IsConnected()) return;
+
+  if (_main_sock_event_idx >= 0) {
+    int fd = _events[_main_sock_event_idx].data.fd;
+    if (fd != _master_socket) return;
+
+    if (_events[_main_sock_event_idx].events & EPOLLIN ||
+        _events[_main_sock_event_idx].events & EPOLLOUT)
+    {
+      TryCreateConnectObj();
+    }
+  }
+}
+
+#else
+
+void NetworkConnect::Update() {
+  if (_master_socket == INVALID_SOCKET) {
+    if (!Connect()) return;
+
+    Log::Info("reconnect socket: " + std::to_string(_master_socket));
+  }
+  
+  Select();
 
   if (!IsConnected()) {
     if (FD_ISSET(_master_socket, &_exceptfds)) {
       Log::Error("connect except. socket: " + std::to_string(_master_socket) + " reconnect.");
 
       Dispose();
-      Connect();
-      return br;
     }
 
     if (FD_ISSET(_master_socket, &_readfds) || FD_ISSET(_master_socket, &_writefds)) {
-      int opt_val = -1;
-      socklen_t opt_len = sizeof(opt_val);
-      const int rs = ::getsockopt(_master_socket, SOL_SOCKET, SO_ERROR, (char*)(&opt_val), &opt_len);
-      if (rs == 0 && opt_val == 0) {
-        ConnectObj* conn_obj = new ConnectObj(this, _master_socket);
-        _connects.insert(std::make_pair(_master_socket, conn_obj));
-      } else {
-        Log::Error("connect failed. socket: " + std::to_string(_master_socket) + " reconnect.");
-
-        Dispose();
-        Connect();
-      }
+      TryCreateConnectObj();
     }
   }
-
-  return br;
 }
+
+#endif
 
 bool NetworkConnect::HasRecvData() {
   int size = _connects.size();

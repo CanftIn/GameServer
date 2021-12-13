@@ -7,7 +7,7 @@
 class NetworkListen : public Network {
  public:
   bool Listen(const InetAddress& ia);
-  bool Update();
+  void Update();
 
  protected:
   virtual int Accept();

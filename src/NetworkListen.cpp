@@ -1,6 +1,7 @@
 #include "NetworkListen.h"
 
 #include "ConnectObj.h"
+#include "utils/Log.h"
 
 bool NetworkListen::Listen(const InetAddress& ia) {
   _master_socket = CreateSocket();
@@ -15,6 +16,13 @@ bool NetworkListen::Listen(const InetAddress& ia) {
   if (!sockets::listenOrDie(_master_socket)) {
     return false;
   }
+
+#ifdef EPOLL
+  Log::Info("epoll model");
+  InitEpoll();
+#else
+  Log::Info("select model");
+#endif
 
   return true;
 }
@@ -33,19 +41,30 @@ int NetworkListen::Accept() {
 
     SetSocketOpt(socket);
 
-    ConnectObj* conn_obj = new ConnectObj(this, socket);
-    _connects.insert(std::make_pair(socket, conn_obj));
+    CreateConnectObj(socket);
 
     ++rs;
   }
 }
 
-bool NetworkListen::Update() {
-  bool br = Select();
+#ifndef EPOLL
+
+void NetworkListen::Update() {
+  Select();
 
   if (FD_ISSET(_master_socket, &_readfds)) {
     Accept();
   }
-
-  return br;
 }
+
+#else
+
+void NetworkListen::Update() {
+  Epoll();
+
+  if (_main_sock_event_idx >= 0) {
+    Accept();
+  }
+}
+
+#endif

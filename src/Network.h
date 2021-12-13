@@ -18,23 +18,46 @@
 #include "Disposable.h"
 #include "SocketsOps.h"
 
+#ifdef EPOLL
+#include <sys/epoll.h>
+#endif
+
 class ConnectObj;
 
 class Network : public IDisposable {
  public:
   void Dispose() override;
-  bool Select();
 
   SOCKET GetSocket() const { return _master_socket; }
 
  protected:
   static void SetSocketOpt(SOCKET socket);
   SOCKET CreateSocket();
+  void CreateConnectObj(SOCKET socket);
+
+#ifdef EPOLL
+  void InitEpoll();
+  void Epoll();
+  void AddEvent(int epollfd, int fd, int flag);
+  void ModifyEvent(int epollfd, int fd, int flag);
+  void DeleteEvent(int epollfd, int fd);
+#else
+  bool Select();
+#endif
 
  protected:
   SOCKET _master_socket;
   std::map<SOCKET, ConnectObj*> _connects;
+
+#ifdef EPOLL
+#define MAX_CLIENT 5120
+#define MAX_EVENT  5120
+  struct epoll_event _events[MAX_EVENT]; // events slot
+  int _epfd; // epoll instance descriptor
+  int _main_sock_event_idx;
+#else
   fd_set _readfds, _writefds, _exceptfds;
+#endif
 };
 
 #endif

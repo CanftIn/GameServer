@@ -19,9 +19,7 @@ int main(int argc, char** argv) {
   }
 
   while (is_run) {
-    if (!server.Update())
-      break;
-
+    server.Update();
     server.DataHandler();
   }
 
